@@ -1,142 +1,218 @@
-import { useForm, useFieldArray } from "react-hook-form";
-import { useCreateTask } from "./services/tasks/tasks";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { TaskFormSchema } from "./services/tasks/schema";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button, Loader, NativeSelect } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo } from 'react';
+import {
+  Controller,
+  type FieldErrors,
+  FormProvider,
+  useFieldArray,
+  useForm,
+} from 'react-hook-form';
+
+import { createDefaultTask, useCreateTasks } from '@/services/tasks/create-tasks';
+
+import { FormRow } from './components/task-form/FormRow';
+import { TaskList } from './components/task-list/TaskList';
+import { useDebounceFn } from './hooks/useDebounceFn';
+import { getTasksQueryOptions } from './services/tasks/query-tasks';
+import { type ITask, type ITaskForm, TaskFormSchema } from './services/tasks/schema';
+import { useQueryUsers } from './services/users/query-users';
+import type { IUser } from './services/users/schema';
+import { getStartOfWeek } from './utils/date-utils';
+import { taskStorage } from './utils/storage-utils';
+import { isNullStr } from './utils/string-utils';
 
 export default function App() {
-  const {
-    control,
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQueryUsers();
+
+  const { usersMap, usersOptions } = useMemo(() => {
+    const usersSet = new Set<string>();
+    const usersMap = (data ?? []).reduce<Record<string, IUser>>((acc, user) => {
+      acc[user.name] = user;
+      usersSet.add(user.name);
+      return acc;
+    }, {});
+    return {
+      usersMap,
+      usersOptions: ['---', ...usersSet],
+    };
+  }, [data]);
+
+  const methods = useForm({
     resolver: zodResolver(TaskFormSchema),
     defaultValues: {
-      tasks: [
-        {
-          jiraId: "123",
-          description: "",
-          status: "In Progress",
-          type: "Issue",
-        },
-      ],
+      tasks: [createDefaultTask()],
     },
   });
 
-  const { fields, append } = useFieldArray({ control, name: "tasks" });
+  const { control, handleSubmit, reset, watch } = methods;
 
-  const mutation = useCreateTask({
+  const { fields, append, remove } = useFieldArray({ control, name: 'tasks' });
+
+  const tasks = watch('tasks');
+  const user = watch('user');
+
+  const mutation = useCreateTasks({
     onSuccess: () => {
-      reset();
+      notifications.show({
+        color: 'teal',
+        message: 'Your report has been submitted. Thanks for your time. Bye!',
+      });
+      clearForm([createDefaultTask()]);
+      queryClient.invalidateQueries({
+        queryKey: getTasksQueryOptions({
+          startWeekDate: getStartOfWeek(),
+          id: user?.id,
+        }).queryKey,
+      });
     },
     onError: () => {
-      control.setError("root", {
-        message: "❌ Failed to submit",
+      notifications.show({
+        color: 'red',
+        message: 'Failed to submit, please try again after 5 seconds.',
       });
     },
   });
 
-  const onSubmit = (data: any) =>
-    mutation.mutate({
-      jiraId: "123",
-      description: "",
-      status: "In Progress",
-      type: "Issue",
-    });
+  const clearForm = (tasks: ITask[]) => {
+    reset((prevValues) => ({
+      ...prevValues,
+      tasks: tasks.length === 0 ? [createDefaultTask()] : tasks,
+    }));
+    taskStorage.save(tasks);
+  };
+
+  const onSubmit = (data: ITaskForm) => {
+    const tasks = data.tasks
+      .filter((task) => !(isNullStr(task.jiraId) && isNullStr(task.description)))
+      .map((task) => ({
+        ...task,
+        startWeekDate: getStartOfWeek(task.date),
+      }));
+
+    clearForm(tasks);
+
+    if (tasks.length) {
+      mutation.mutate({
+        tasks,
+        user: data.user,
+      });
+    } else {
+      notifications.show({
+        message: "You haven't worked today, have you?",
+      });
+    }
+  };
+
+  const onError = (errors: FieldErrors<ITaskForm>) => {
+    if (errors.user) {
+      notifications.show({
+        color: 'red',
+        message: 'Who are you?',
+      });
+    }
+  };
+
+  const initialLoad = useCallback(async () => {
+    const tasks = await taskStorage.get();
+    if (tasks?.length) {
+      reset((prevValues) => ({
+        ...prevValues,
+        tasks,
+      }));
+    }
+  }, [reset]);
+
+  useDebounceFn(
+    tasks,
+    (tasks) => {
+      taskStorage.save(tasks);
+    },
+    5_000
+  );
+
+  useEffect(() => {
+    initialLoad();
+  }, [initialLoad]);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Worked Tasks</h1>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {fields.map((field, index) => (
-          <div
-            key={field.id}
-            className="grid grid-cols-4 gap-4 items-start border rounded-lg p-4 bg-white shadow-sm"
-          >
-            {/* JIRA ID */}
-            <div>
-              <input
-                type="text"
-                placeholder="JIRA ID"
-                {...register(`tasks.${index}.jiraId`)}
-                className="border rounded p-2 w-full"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <textarea
-                placeholder="Description"
-                rows={2}
-                {...register(`tasks.${index}.description`)}
-                className={`border rounded p-2 w-full resize-none ${
-                  errors.tasks?.[index]?.description ? "border-red-500" : ""
-                }`}
-              />
-              {errors.tasks?.[index]?.description && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.tasks[index].description.message}
-                </p>
+    <div className="mx-auto max-w-7xl p-8">
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-0">
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-2xl">You are: </h2>
+            <Controller
+              name="user"
+              render={({ field: { value, onChange } }) => (
+                <NativeSelect
+                  size="lg"
+                  className="min-w-52"
+                  value={value?.name ?? ''}
+                  onChange={(ev) => onChange(usersMap[ev.target.value as string])}
+                  data={usersOptions}
+                  disabled={isLoading}
+                />
               )}
-            </div>
-
-            {/* Status */}
-            <div>
-              <select
-                {...register(`tasks.${index}.status`)}
-                className="border rounded p-2 w-full"
-              >
-                <option>In Progress</option>
-                <option>Development Done</option>
-                <option>Open</option>
-              </select>
-            </div>
-
-            {/* Type */}
-            <div>
-              <select
-                {...register(`tasks.${index}.type`)}
-                className="border rounded p-2 w-full"
-              >
-                <option>Issue</option>
-                <option>Plan</option>
-              </select>
-            </div>
+            />
+            {isLoading ? <Loader size={24} ml={6} /> : null}
           </div>
-        ))}
+          <div className="grid grid-cols-[160px_220px_160px_1fr] items-start gap-0 text-sm text-slate-400 italic [&_p]:px-2">
+            <p>Date</p>
+            <p>Status</p>
+            <p>Jira</p>
+            <p>Description</p>
+          </div>
+          {fields.map((field, index) => (
+            <FormRow
+              key={`Row#${String.fromCharCode(index + 65)}`}
+              field={{ ...field, index }}
+              onRemove={() => remove(index)}
+            />
+          ))}
 
-        {/* Add + Submit buttons */}
-        <div className="flex justify-between items-center mt-4">
-          <button
-            type="button"
-            onClick={() =>
-              append({
-                jiraId: "",
-                description: "",
-                status: "In Progress",
-                type: "Issue",
-              })
-            }
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
-            + Add New
-          </button>
+          <div className="mt-4 flex items-center justify-end gap-4">
+            <Button
+              variant="outline"
+              color="gray"
+              type="button"
+              size="lg"
+              onClick={() => {
+                clearForm([createDefaultTask()]);
+              }}
+            >
+              Clear all
+            </Button>
 
-          <button
-            type="submit"
-            disabled={mutation.isPending}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg"
-          >
-            {mutation.isPending ? "Submitting..." : "Submit"}
-          </button>
-        </div>
-      </form>
+            <Button
+              variant="outline"
+              color="gray"
+              type="button"
+              size="lg"
+              onClick={() => append(createDefaultTask())}
+            >
+              + Add New
+            </Button>
 
-      {/* {message && (
-        <p className="mt-4 text-center font-medium text-gray-700">{message}</p>
-      )} */}
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="min-w-24"
+              size="lg"
+              w={200}
+            >
+              {mutation.isPending ? 'Submitting...' : 'Submit'}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
+
+      {user?.id ? (
+        <TaskList startWeekDate={getStartOfWeek()} id={user.id} onCopy={(task) => append(task)} />
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,13 @@
-export const ConfigUtils = {
-  GOOGLE_SCRIPT_URL:
-    "https://script.google.com/macros/s/AKfycbwVMAdIl84_VTcQdFl97xxHejn8XEDEhwPro6MSRI9ifZ78-RZ7xM_0egwRBGmWS8WfqA/exec",
+const getEnv = (key: string, defaultValue?: string | number | boolean) => {
+  return import.meta.env['VITE_' + key] ?? defaultValue;
+};
+
+type ConfigUtils = {
+  ENV: 'production' | 'development';
+  GOOGLE_SCRIPT_URL: string;
+};
+
+export const ConfigUtils: ConfigUtils = {
+  ENV: getEnv('NODE_ENV', 'production'),
+  GOOGLE_SCRIPT_URL: '',
 };
