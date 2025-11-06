@@ -16,6 +16,7 @@ import { createDefaultTask, useCreateTasks } from '@/services/tasks/create-tasks
 import { FormRow } from './components/task-form/FormRow';
 import { TaskList } from './components/task-list/TaskList';
 import { useDebounceFn } from './hooks/useDebounceFn';
+import { useQueryProjects } from './services/projects/query-projects';
 import { getTasksQueryOptions } from './services/tasks/query-tasks';
 import { type ITask, type ITaskForm, TaskFormSchema } from './services/tasks/schema';
 import { useQueryUsers } from './services/users/query-users';
@@ -28,6 +29,12 @@ export default function App() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQueryUsers();
+  const { data: projects } = useQueryProjects();
+
+  const defaultProject = useMemo(
+    () => (projects || []).find(({ isDefault }) => isDefault === 'Y') || projects?.[0],
+    [projects]
+  );
 
   const { usersMap, usersOptions } = useMemo(() => {
     const usersSet = new Set<string>();
@@ -45,7 +52,7 @@ export default function App() {
   const methods = useForm({
     resolver: zodResolver(TaskFormSchema),
     defaultValues: {
-      tasks: [createDefaultTask()],
+      tasks: [createDefaultTask(undefined, defaultProject)],
     },
   });
 
@@ -62,7 +69,7 @@ export default function App() {
         color: 'teal',
         message: 'Your report has been submitted. Thanks for your time. Bye!',
       });
-      clearForm([createDefaultTask()]);
+      clearForm([createDefaultTask(undefined, defaultProject)]);
       queryClient.invalidateQueries({
         queryKey: getTasksQueryOptions({
           startWeekDate: getStartOfWeek(),
@@ -81,7 +88,7 @@ export default function App() {
   const clearForm = (tasks: ITask[]) => {
     reset((prevValues) => ({
       ...prevValues,
-      tasks: tasks.length === 0 ? [createDefaultTask()] : tasks,
+      tasks: tasks.length === 0 ? [createDefaultTask(undefined, defaultProject)] : tasks,
     }));
     taskStorage.save(tasks);
   };
@@ -130,6 +137,8 @@ export default function App() {
   useDebounceFn(
     tasks,
     (tasks) => {
+      console.log('🚀 Line: 133 👈 🆚 👉 ==== n-console: tasks', tasks);
+
       taskStorage.save(tasks);
     },
     5_000
@@ -158,9 +167,10 @@ export default function App() {
                 />
               )}
             />
-            {isLoading ? <Loader size={24} ml={6} /> : null}
+            {isLoading ? <Loader color="gray" size={24} ml={6} /> : null}
           </div>
-          <div className="grid grid-cols-[160px_220px_160px_1fr] items-start gap-0 text-sm text-slate-400 italic [&_p]:px-2">
+          <div className="grid grid-cols-[160px_160px_220px_160px_1fr] items-start gap-0 text-sm text-slate-400 italic [&_p]:px-2">
+            <p>Project</p>
             <p>Date</p>
             <p>Status</p>
             <p>Jira</p>
@@ -181,7 +191,7 @@ export default function App() {
               type="button"
               size="lg"
               onClick={() => {
-                clearForm([createDefaultTask()]);
+                clearForm([createDefaultTask(undefined, defaultProject)]);
               }}
             >
               Clear all
@@ -192,7 +202,7 @@ export default function App() {
               color="gray"
               type="button"
               size="lg"
-              onClick={() => append(createDefaultTask())}
+              onClick={() => append(createDefaultTask(undefined, defaultProject))}
             >
               + Add New
             </Button>
@@ -210,9 +220,7 @@ export default function App() {
         </form>
       </FormProvider>
 
-      {user?.id ? (
-        <TaskList startWeekDate={getStartOfWeek()} id={user.id} onCopy={(task) => append(task)} />
-      ) : null}
+      {user?.id ? <TaskList id={user.id} onCopy={(task) => append(task)} /> : null}
     </div>
   );
 }

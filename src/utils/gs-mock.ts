@@ -36,11 +36,9 @@ export function createGsRunMock<R>(api: Record<string, AnyFn>): GsRunHandlers<R>
             throw new Error(`Function "${prop}" not found`);
           }
 
-          const result = await new Promise<ReturnType<typeof fn>>((resolve) =>
-            setTimeout(() => {
-              resolve(fn(...args));
-            }, 1)
-          );
+          const result = await new Promise<ReturnType<typeof fn>>((resolve) => {
+            resolve(fn(...args));
+          });
           successHandler?.(result);
         } catch (err) {
           failureHandler?.(err as Error);
@@ -52,96 +50,168 @@ export function createGsRunMock<R>(api: Record<string, AnyFn>): GsRunHandlers<R>
 
 export const mockGsFunctions = {
   getSheetData: async (name: string) => {
-    switch (name) {
-      case 'R-2025-11-03':
-        return {
-          success: true,
-          data: [
-            [
-              'tan.pham',
-              'Tan Pham',
-              '2025-11-02T17:00:00.000Z',
-              'CORE-27469',
-              '[ACBS] Support internal test',
-              'Development Done',
-              '',
-              '2025-11-03T10:21:40.667Z',
-              '20251104#1',
-            ],
-            [
-              'tan.pham',
-              'Tan Pham',
-              '2025-11-02T17:00:00.000Z',
-              'CORE-26675',
-              '[VDSC] Implement websocket - build release',
-              'Development Done',
-              '',
-              '2025-11-03T10:21:40.985Z',
-              '20251104#2',
-            ],
-            [
-              'tan.pham',
-              'Tan Pham',
-              '2025-11-02T17:00:00.000Z',
-              'CORE-26675',
-              '[VDSC] Implement websocket - build release',
-              'Development Done',
-              '',
-              '2025-11-03T10:21:40.985Z',
-              '20251104#3',
-            ],
-            [
-              'tan.pham',
-              'Tan Pham',
-              '2025-11-02T17:00:00.000Z',
-              'CORE-26675',
-              '[VDSC] Implement websocket - build release',
-              'Development Done',
-              '',
-              '2025-11-03T10:21:40.985Z',
-              '20251104#4',
-            ],
-            [
-              'tan.pham',
-              'Tan Pham',
-              '2025-11-03T17:00:00.000Z',
-              'CORE-26675',
-              '[VDSC] Implement websocket - build release',
-              'Development Done',
-              '',
-              '2025-11-03T10:21:40.985Z',
-              '20251104#5',
-            ],
-          ],
-        };
-      case 'MEMBERS':
-        return {
-          success: true,
-          data: [
-            [
-              'tan.pham',
-              'Tan Pham',
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
-            ],
-            [
-              'longp.tran',
-              'Long Tran',
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImxvbmdwLnRyYW4iLCJyb2xlIjoiREVWIiwibmFtZSI6IkxvbmcgVHJhbiIsImlhdCI6MTc2MjE2MTk1NiwiZXhwIjoxNzkzNjk3OTU2fQ.E1hoPGB8kSjrHosiPEMMYWeY2IGO4pq-iU2Aj6KXreU',
-            ],
-            [
-              'phiemt.hoang',
-              'Phiem Tu',
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InBoaWVtdC5ob2FuZyIsInJvbGUiOiJERVYiLCJuYW1lIjoiUGhpZW0gVHUiLCJpYXQiOjE3NjIxNjIxMDAsImV4cCI6MTc5MzY5ODEwMH0.mRq8WImrqTHiL8AR6MuJMdicQFBklnPfZqcH_KCao8w',
-            ],
-            [
-              'thienh.vu',
-              'Thien Vu',
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRoaWVuaC52dSIsInJvbGUiOiJERVYiLCJuYW1lIjoiVGhpZW4gVnUiLCJpYXQiOjE3NjIxNjIwNDMsImV4cCI6MTc5MzY5ODA0M30.mgl_2SJNpIuErCl8DqiXsBbH7nGuZJucsXuJNFH-OTY',
-            ],
-          ],
-        };
-      default:
-        return { success: false };
-    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        switch (name) {
+          case 'R-2025-11-03':
+            return resolve({
+              success: true,
+              data: [
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-02T17:00:00.000Z',
+                  'CORE-27469',
+                  '[ACBS] Support internal test',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.667Z',
+                  '20251104#1',
+                ],
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-02T17:00:00.000Z',
+                  'CORE-26675',
+                  '[VDSC] Implement websocket - build release',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.985Z',
+                  '20251104#2',
+                ],
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-02T17:00:00.000Z',
+                  'CORE-26675',
+                  '[VDSC] Implement websocket - build release',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.985Z',
+                  '20251104#3',
+                ],
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-02T17:00:00.000Z',
+                  'CORE-26675',
+                  '[VDSC] Implement websocket - build release',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.985Z',
+                  '20251104#4',
+                ],
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-03T17:00:00.000Z',
+                  'CORE-26675',
+                  '[VDSC] Implement websocket - build release',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.985Z',
+                  '20251104#5',
+                ],
+              ],
+            });
+          case 'R-2025-10-27':
+            return resolve({
+              success: true,
+              data: [
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-02T17:00:00.000Z',
+                  'CORE-27469',
+                  '[ACBS] Support internal test',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.667Z',
+                  'R-2025-10-27#1',
+                ],
+              ],
+            });
+          case 'R-2025-10-20':
+            return resolve({
+              success: true,
+              data: [
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '2025-11-02T17:00:00.000Z',
+                  'CORE-27469',
+                  '[ACBS] Support internal test',
+                  'Development Done',
+                  '',
+                  '2025-11-03T10:21:40.667Z',
+                  'R-2025-10-20#1',
+                ],
+              ],
+            });
+          case 'MEMBERS':
+            return resolve({
+              success: true,
+              data: [
+                [
+                  'tan.pham',
+                  'Tan Pham',
+                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
+                ],
+                [
+                  'longp.tran',
+                  'Long Tran',
+                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImxvbmdwLnRyYW4iLCJyb2xlIjoiREVWIiwibmFtZSI6IkxvbmcgVHJhbiIsImlhdCI6MTc2MjE2MTk1NiwiZXhwIjoxNzkzNjk3OTU2fQ.E1hoPGB8kSjrHosiPEMMYWeY2IGO4pq-iU2Aj6KXreU',
+                ],
+                [
+                  'phiemt.hoang',
+                  'Phiem Tu',
+                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InBoaWVtdC5ob2FuZyIsInJvbGUiOiJERVYiLCJuYW1lIjoiUGhpZW0gVHUiLCJpYXQiOjE3NjIxNjIxMDAsImV4cCI6MTc5MzY5ODEwMH0.mRq8WImrqTHiL8AR6MuJMdicQFBklnPfZqcH_KCao8w',
+                ],
+                [
+                  'thienh.vu',
+                  'Thien Vu',
+                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRoaWVuaC52dSIsInJvbGUiOiJERVYiLCJuYW1lIjoiVGhpZW4gVnUiLCJpYXQiOjE3NjIxNjIwNDMsImV4cCI6MTc5MzY5ODA0M30.mgl_2SJNpIuErCl8DqiXsBbH7nGuZJucsXuJNFH-OTY',
+                ],
+              ],
+            });
+          case 'PROJECTS':
+            return resolve({
+              success: true,
+              data: [
+                [
+                  'ACBS',
+                  'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
+                  '10b01be6-7e63-417c-89ca-b13e0095b2d5',
+                  'Y',
+                  'Y',
+                ],
+                [
+                  'ACCC',
+                  '9a3e5969-f2fe-4da4-b6b6-b13f0032457b',
+                  '2e5eae26-4b04-4004-8c7a-b13f0032457b',
+                  'Y',
+                  'N',
+                ],
+              ],
+            });
+          default:
+            return resolve({ success: false });
+        }
+      }, 100);
+    });
   },
 };

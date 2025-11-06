@@ -44,12 +44,13 @@ export const useCreateTasks = (...args: Parameters<typeof getCreateTaskMutationO
   return useMutation(getCreateTaskMutationOptions(...args));
 };
 
-export const createDefaultTask = (date?: string): ITask => {
+export const createDefaultTask = (date?: string, defaultProject?: ITask['project']): ITask => {
   return {
     date: date || dayjs().format('YYYY-MM-DD'),
     jiraId: '',
     description: '',
     status: 'In Progress',
     startWeekDate: getStartOfWeek(),
+    project: defaultProject,
   };
 };

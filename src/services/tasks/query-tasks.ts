@@ -17,7 +17,19 @@ function generateUniqueId({ id = '' }, index = 0) {
 }
 
 const convertToTasks = (values: string[], index: number) => {
-  const [id, name, date, jiraId, description, status, remark, createdAt, uniId] = values;
+  const [
+    id,
+    name,
+    project,
+    projectId,
+    date,
+    jiraId,
+    description,
+    status,
+    remark,
+    createdAt,
+    uniId,
+  ] = values;
   return {
     id,
     name,
@@ -28,6 +40,11 @@ const convertToTasks = (values: string[], index: number) => {
     remark,
     createdAt,
     uniId: isNullStr(uniId) ? generateUniqueId({ id }, index) : uniId,
+    project: {
+      name: project,
+      id1: projectId,
+      id2: '',
+    },
   };
 };
 
@@ -46,7 +63,7 @@ export const getTasks = async (query: { startWeekDate: string; id: string }) => 
 
 export const getTasksQueryOptions = (...args: Parameters<typeof getTasks>): GetTaskQueryOptions => {
   return {
-    queryKey: ['TASKS'],
+    queryKey: ['TASKS', ...args],
     queryFn: () => getTasks(...args),
   };
 };

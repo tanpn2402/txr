@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { ProjectSchema } from '../projects/schema';
 import { UserSchema } from '../users/schema';
 
 export const TaskSchema = z.object({
@@ -10,6 +11,7 @@ export const TaskSchema = z.object({
   startWeekDate: z.string(),
   createdAt: z.string().optional().nullable(),
   uniId: z.string().optional().nullable(),
+  project: ProjectSchema.optional(),
 });
 
 export const TaskFormSchema = z.object({

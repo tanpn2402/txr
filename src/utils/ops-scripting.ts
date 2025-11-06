@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 
 import type { ITask } from '@/services/tasks/schema';
 
+import { isNullStr } from './string-utils';
+
 const TOTAL_EFFORT = 100;
 
 const calcEffort = (tasks: ITask[]) => {
@@ -30,7 +32,7 @@ const calcEffort = (tasks: ITask[]) => {
   return result;
 };
 
-export const getOpsScript = (_tasks: ITask[]) => {
+export const getOpsScript = (_tasks: ITask[], { isAutoSubmit = false }) => {
   const tasks = calcEffort(_tasks);
   const scripts: string[] = [];
 
@@ -58,6 +60,11 @@ export const getOpsScript = (_tasks: ITask[]) => {
 
     for (let index = 0; index < tasks.length; index++) {
       const task = tasks[index];
+      const projectOptionId = task.project?.id1;
+      const projectId = task.project?.id2;
+
+      if (isNullStr(projectOptionId) || isNullStr(projectId)) continue;
+
       scripts.push(`  setTimeout(() => {`);
       scripts.push(`    btnAddProjectRole.click();`);
       scripts.push(`    const nextTr = tr.nextElementSibling;`);
@@ -65,10 +72,9 @@ export const getOpsScript = (_tasks: ITask[]) => {
         `    const projectRoleContainer = nextTr.querySelectorAll('div[class="AttendanceProjectRoleContainer"]')[${index}];`
       );
       scripts.push(`    const select = projectRoleContainer.querySelector('select');`);
-      scripts.push(`    const projectOptionId = 'a296a466-bf0c-433e-9e71-b13f003206b3';`);
-      scripts.push(`    select.value = projectOptionId;`);
+      scripts.push(`    select.value = "${projectOptionId}";`);
       scripts.push(`    const hiddenInput = select.nextElementSibling;`);
-      scripts.push(`    hiddenInput.value = projectOptionId;`);
+      scripts.push(`    hiddenInput.value = "${projectId}";`);
       scripts.push(
         `    projectRoleContainer.querySelector('input[placeholder="Effort Rate"]').value = ${task.effort};`
       );
@@ -78,6 +84,14 @@ export const getOpsScript = (_tasks: ITask[]) => {
       scripts.push(`  }, ${index * 100});`);
     }
     scripts.push(`}).call();`);
+  }
+
+  if (isAutoSubmit) {
+    const timeout =
+      Math.max(...Object.values(groupedTasks).map((tasks) => tasks.length)) * 100 + 500;
+    scripts.push(
+      `setTimeout(() => document.querySelector('button[class="btn btn-lg btn-primary Save"]').click(), ${timeout})`
+    );
   }
 
   return scripts.join('\n');
