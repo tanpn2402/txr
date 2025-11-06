@@ -48,14 +48,14 @@ const convertToTasks = (values: string[], index: number) => {
   };
 };
 
-export const getTasks = async (query: { startWeekDate: string; id: string }) => {
+export const getTasks = async (query: { startWeekDate: string }) => {
   const response = await callGoogleScript<string, string[][]>(
     'getSheetData',
     `R-${query.startWeekDate}`
   );
 
   if (!response.success) {
-    throw Error(typeof response.error === 'string' ? response.error : response.error?.message);
+    throw [];
   } else {
     return response.data?.map(convertToTasks);
   }
@@ -65,6 +65,7 @@ export const getTasksQueryOptions = (...args: Parameters<typeof getTasks>): GetT
   return {
     queryKey: ['TASKS', ...args],
     queryFn: () => getTasks(...args),
+    retry: 0,
   };
 };
 

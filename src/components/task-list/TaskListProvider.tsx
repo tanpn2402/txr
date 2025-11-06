@@ -39,7 +39,7 @@ function useTaskList({ id, startWeekDate }: { startWeekDate: string; id: string 
     [projects]
   );
 
-  const { data, isLoading } = useQueryTasks({ id, startWeekDate });
+  const { data, isLoading } = useQueryTasks({ startWeekDate });
   const tasks = useMemo<ITask[]>(
     () =>
       (data || [])

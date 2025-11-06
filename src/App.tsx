@@ -22,7 +22,7 @@ import { type ITask, type ITaskForm, TaskFormSchema } from './services/tasks/sch
 import { useQueryUsers } from './services/users/query-users';
 import type { IUser } from './services/users/schema';
 import { getStartOfWeek } from './utils/date-utils';
-import { taskStorage } from './utils/storage-utils';
+import { taskStorage, tokenStorage } from './utils/storage-utils';
 import { isNullStr } from './utils/string-utils';
 
 export default function App() {
@@ -56,7 +56,7 @@ export default function App() {
     },
   });
 
-  const { control, handleSubmit, reset, watch } = methods;
+  const { control, getValues, handleSubmit, reset, watch } = methods;
 
   const { fields, append, remove } = useFieldArray({ control, name: 'tasks' });
 
@@ -73,7 +73,6 @@ export default function App() {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryOptions({
           startWeekDate: getStartOfWeek(),
-          id: user?.id,
         }).queryKey,
       });
     },
@@ -137,12 +136,16 @@ export default function App() {
   useDebounceFn(
     tasks,
     (tasks) => {
-      console.log('🚀 Line: 133 👈 🆚 👉 ==== n-console: tasks', tasks);
-
       taskStorage.save(tasks);
     },
     5_000
   );
+
+  useEffect(() => {
+    if (user) {
+      tokenStorage.setAccessToken(user.token);
+    }
+  }, [user]);
 
   useEffect(() => {
     initialLoad();
@@ -180,7 +183,15 @@ export default function App() {
             <FormRow
               key={`Row#${String.fromCharCode(index + 65)}`}
               field={{ ...field, index }}
-              onRemove={() => remove(index)}
+              onRemove={() => {
+                remove(index);
+                if (fields.length === 1) {
+                  clearForm([createDefaultTask(undefined, defaultProject)]);
+                }
+              }}
+              onCopy={() => {
+                append(getValues(`tasks.${index}`));
+              }}
             />
           ))}
 
@@ -190,6 +201,7 @@ export default function App() {
               color="gray"
               type="button"
               size="lg"
+              disabled={mutation.isPending}
               onClick={() => {
                 clearForm([createDefaultTask(undefined, defaultProject)]);
               }}
@@ -202,6 +214,7 @@ export default function App() {
               color="gray"
               type="button"
               size="lg"
+              disabled={mutation.isPending}
               onClick={() => append(createDefaultTask(undefined, defaultProject))}
             >
               + Add New

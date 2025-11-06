@@ -1,4 +1,4 @@
-import { Button, NativeSelect } from '@mantine/core';
+import { Button, NativeSelect, Tooltip, type TooltipProps } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import React from 'react';
@@ -12,6 +12,8 @@ import type { FieldWithIndex } from '@/types/FieldWithIndex';
 import { cn } from '@/utils/cn';
 
 import { ComboBox } from '../commons/ComboBox';
+import { CopyIcon } from '../icons/CopyIcon';
+import { TrashIcon } from '../icons/TrashIcon';
 import { FlexibleTextArea } from './FlexibleTextArea';
 
 const FullHeightInput = {
@@ -22,10 +24,19 @@ const FullHeightInput = {
   },
 };
 
+const TooltipProps: Partial<TooltipProps> = {
+  withArrow: true,
+  transitionProps: { transition: 'pop-bottom-left', duration: 200 },
+  arrowSize: 8,
+  color: 'white',
+  className: 'border border-[#ced4da] text-black! shadow-lg [&_div]:bg-[#ced4da]!',
+};
+
 export const FormRow: React.FC<{
   field: FieldWithId<FieldWithIndex<ITask>>;
   onRemove: () => void;
-}> = ({ field: { index, ...field }, onRemove }) => {
+  onCopy: () => void;
+}> = ({ field: { index, ...field }, onRemove, onCopy }) => {
   const { control } = useFormContext<ITaskForm>();
   const isEditable = !!field.createdAt;
 
@@ -35,7 +46,7 @@ export const FormRow: React.FC<{
     <div
       key={field.id}
       className={cn([
-        'grid grid-cols-[160px_160px_220px_160px_1fr_100px] items-start gap-0',
+        'grid grid-cols-[160px_160px_220px_160px_1fr_80px] items-start gap-0',
         '[&_select]:not-focus-within:border-l-transparent!',
         '[&_button]:not-focus-within:border-l-transparent!',
       ])}
@@ -135,12 +146,25 @@ export const FormRow: React.FC<{
           color="gray"
           variant="outline"
           size="xs"
-          className="h-full! w-full! border-[#ced4da]! border-l-transparent!"
-          onClick={onRemove}
+          className="h-full! w-full! border-x-0! border-[#ced4da]! p-0!"
+          onClick={onCopy}
           disabled={isEditable}
         >
-          Remove
+          <CopyIcon className="h-4 w-4" />
         </Button>
+        <Tooltip label="Delete" {...TooltipProps}>
+          <Button
+            type="button"
+            color="gray"
+            variant="outline"
+            size="xs"
+            className="h-full! w-full! border-l-0! border-[#ced4da]! p-0!"
+            onClick={onRemove}
+            disabled={isEditable}
+          >
+            <TrashIcon className="h-4 w-4" />
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

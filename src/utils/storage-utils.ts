@@ -6,12 +6,7 @@ const storagePrefix = 'txr_';
 
 const tokenStorage = {
   getAccessToken: () => {
-    const params = new URLSearchParams(window.location.search);
-    return (
-      params.get('token') ??
-      window.location.pathname.split('/').at(-1) ??
-      localforage.getItem<string>(`${storagePrefix}atoken`)
-    );
+    return localforage.getItem<string>(`${storagePrefix}atoken`);
   },
   setAccessToken: (token: string) => {
     return localforage.setItem(`${storagePrefix}atoken`, token);

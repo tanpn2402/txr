@@ -1,4 +1,4 @@
-import { Combobox, TextInput, type TextInputProps,useCombobox } from '@mantine/core';
+import { Combobox, TextInput, type TextInputProps, useCombobox } from '@mantine/core';
 import { useState } from 'react';
 
 export type ComboBoxProps<T> = {
