@@ -101,7 +101,7 @@ export const mockGsFunctions = {
                   'Tan Pham',
                   'ACBS',
                   'a8c6839f-bc4f-4311-a073-b13e0095b2d5',
-                  '2025-11-02T17:00:00.000Z',
+                  '2025-11-06T17:00:00.000Z',
                   'CORE-26675',
                   '[VDSC] Implement websocket - build release',
                   'Development Done',

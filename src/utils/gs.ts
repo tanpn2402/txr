@@ -1,7 +1,7 @@
 import type { TypeAny } from '@/types/TypeAny';
 
 import { ConfigUtils } from './config-utils';
-import { createGsRunMock, type GsRunHandlers, mockGsFunctions } from './gs-mock';
+import { createGsRunMock, mockGsFunctions } from './gs-mock';
 
 type ReturnType<R> = {
   success: boolean;
@@ -25,43 +25,57 @@ export function callGoogleScript<T = unknown, R = unknown>(
 }> {
   return new Promise((resolve) => {
     try {
-      console.group('====> [GS] callGoogleScript', functionName);
+      console.log('====> [GS] callGoogleScript', functionName);
       console.log('Request body', data);
-
-      let run: GsRunHandlers<ReturnType<R>> | undefined = undefined;
 
       if (!(window as TypeAny).google?.script?.run) {
         if (ConfigUtils.ENV === 'development') {
-          run = createGsRunMock(mockGsFunctions);
+          const run = createGsRunMock<ReturnType<R>>(mockGsFunctions);
+          run
+            .withSuccessHandler((res: ReturnType<R>) => {
+              console.log('Response body', res);
+              if (typeof res.data === 'string') {
+                res.data = JSON.parse(res.data);
+              }
+              resolve(res);
+            })
+            .withFailureHandler((error: TypeAny) => {
+              console.log('Response error', error);
+              resolve({
+                success: false,
+                error,
+              });
+            });
+
+          if (data !== undefined) run[functionName](data);
+          else run[functionName]();
+        } else {
+          throw new Error(
+            'google.script.run is not available (not running inside Apps Script web app).'
+          );
         }
-      } else {
-        run = (window as TypeAny).google.script.run as GsRunHandlers<ReturnType<R>>;
       }
-
-      if (!run) {
-        throw new Error(
-          'google.script.run is not available (not running inside Apps Script web app).'
-        );
-      }
-
-      run
-        .withSuccessHandler((res: ReturnType<R>) => {
-          console.log('Response body', res);
-          if (typeof res.data === 'string') {
-            res.data = JSON.parse(res.data);
-          }
-          resolve(res);
-        })
-        .withFailureHandler((error: TypeAny) => {
-          console.log('Response error', error);
-          resolve({
-            success: false,
-            error,
+      // google.script.run is available
+      else {
+        const run = (window as TypeAny).google.script.run
+          .withSuccessHandler((res: ReturnType<R>) => {
+            console.log('Response body', res);
+            if (typeof res.data === 'string') {
+              res.data = JSON.parse(res.data);
+            }
+            resolve(res);
+          })
+          .withFailureHandler((error: TypeAny) => {
+            console.log('Response error', error);
+            resolve({
+              success: false,
+              error,
+            });
           });
-        });
 
-      if (data !== undefined) run[functionName](data);
-      else run[functionName]();
+        if (data !== undefined) run[functionName](data);
+        else run[functionName]();
+      }
     } catch (error) {
       console.log('Failed to call Google Script', error);
       resolve({
@@ -70,7 +84,6 @@ export function callGoogleScript<T = unknown, R = unknown>(
       });
     } finally {
       console.log('<==== [GS] callGoogleScript', functionName);
-      console.groupEnd();
     }
   });
 }

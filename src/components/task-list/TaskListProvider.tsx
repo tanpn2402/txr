@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import { useQueryProjects } from '@/services/projects/query-projects';
@@ -56,7 +57,8 @@ function useTaskList({ id, startWeekDate }: { startWeekDate: string; id: string 
                 }
               : {}),
           },
-        })),
+        }))
+        .sort((a, b) => (dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1)),
     [id, startWeekDate, projectsMap, data]
   );
 

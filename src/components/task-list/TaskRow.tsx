@@ -102,7 +102,15 @@ export const TaskRow: React.FC<{
       <div {...TableCellProps}>{task.project?.name}</div>
       <div {...TableCellProps}>{dayjs(task.date).format('YYYY-MM-DD')}</div>
       <div {...TableCellProps}>{task.status}</div>
-      <div {...TableCellProps}>{task.jiraId}</div>
+      <div {...TableCellProps}>
+        <a
+          href={`https://tx-tech.atlassian.net/browse/${task.jiraId?.trim()}`}
+          target="_blank"
+          className="text-blue-500"
+        >
+          {task.jiraId}
+        </a>
+      </div>
       <div {...TableCellProps}>{task.description}</div>
       <div className="flex h-full">
         <Tooltip label="Copy" {...TooltipProps}>
