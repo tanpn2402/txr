@@ -214,4 +214,27 @@ export const mockGsFunctions = {
       }, 100);
     });
   },
+  callAction: async ({ action }: { action: string; body: TypeAny }) => {
+    switch (action) {
+      case 'LOGIN': {
+        return {
+          success: true,
+          data: {
+            token:
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
+          },
+        };
+      }
+      case 'GET_MEMBER': {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ success: true, data: { token: 'xxx' } });
+          }, 10_000);
+        });
+      }
+      default: {
+        return { success: false };
+      }
+    }
+  },
 };

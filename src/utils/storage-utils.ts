@@ -11,6 +11,12 @@ const tokenStorage = {
   setAccessToken: (token: string) => {
     return localforage.setItem(`${storagePrefix}atoken`, token);
   },
+  setUserId: (userId: string) => {
+    return localforage.setItem(`${storagePrefix}auserid`, userId);
+  },
+  getUserId: () => {
+    return localforage.getItem<string>(`${storagePrefix}auserid`);
+  },
   clearTokens: async () => {
     await Promise.allSettled([
       localforage.removeItem(`${storagePrefix}atoken`),
