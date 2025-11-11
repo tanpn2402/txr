@@ -1,5 +1,6 @@
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 
+import { encryptPin } from '@/utils/encrypt-util';
 import { callGoogleScript } from '@/utils/gs';
 
 import type { ILoginForm } from './schema';
@@ -17,7 +18,10 @@ export const userLogin = async (data: ILoginForm) => {
     { token: string; name: string; role: string }
   >('callAction', {
     action: 'LOGIN',
-    body: data,
+    body: {
+      id: data.id,
+      pin: await encryptPin(data.pin),
+    },
   });
   if (!response.success) {
     throw Error(typeof response.error === 'string' ? response.error : response.error?.message);

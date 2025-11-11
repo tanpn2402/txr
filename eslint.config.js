@@ -28,5 +28,8 @@ export default defineConfig([
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
     },
+    ignores: [
+      'releases/'
+    ]
   },
 ]);
