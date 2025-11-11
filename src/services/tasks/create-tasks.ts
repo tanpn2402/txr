@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 import { getStartOfWeek } from '@/utils/date-utils';
 import { callGoogleScript } from '@/utils/gs';
+import { tokenStorage } from '@/utils/storage-utils';
 
 import type { ITask, ITaskForm } from './schema';
 
@@ -21,7 +22,7 @@ export const createTasks = async (form: ITaskForm) => {
   }>('callAction', {
     action: 'CREATE_TASKS',
     body: form.tasks,
-    token: form.user.token,
+    token: await tokenStorage.getAccessToken(),
   });
 
   if (!response.success) {
