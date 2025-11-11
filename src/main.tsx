@@ -10,6 +10,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import App from './App.jsx';
+import { AuthGuardProvider } from './components/guards/AuthGuard.js';
 
 export const theme = createTheme({
   radius: {
@@ -29,7 +30,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme}>
         <Notifications />
-        <App />
+        <AuthGuardProvider>
+          <App />
+        </AuthGuardProvider>
       </MantineProvider>
     </QueryClientProvider>
   </React.StrictMode>

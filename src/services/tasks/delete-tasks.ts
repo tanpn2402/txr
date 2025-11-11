@@ -1,5 +1,6 @@
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 
+import { authGuardMutationMiddleware, useAuthGuard } from '@/components/guards/AuthGuard';
 import { callGoogleScript } from '@/utils/gs';
 import { tokenStorage } from '@/utils/storage-utils';
 
@@ -38,5 +39,6 @@ export const getDeleteTaskMutationOptions = (
 };
 
 export const useDeleteTasks = (...args: Parameters<typeof getDeleteTaskMutationOptions>) => {
-  return useMutation(getDeleteTaskMutationOptions(...args));
+  const authGuard = useAuthGuard();
+  return useMutation(authGuardMutationMiddleware(authGuard)(getDeleteTaskMutationOptions(...args)));
 };

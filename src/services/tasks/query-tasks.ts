@@ -31,18 +31,18 @@ const convertToTasks = (values: string[], index: number) => {
     uniId,
   ] = values;
   return {
-    id,
-    name,
+    id: String(id ?? ''),
+    name: String(name ?? ''),
     date,
-    jiraId,
-    description,
-    status,
-    remark,
+    jiraId: String(jiraId),
+    description: String(description),
+    status: String(status),
+    remark: String(remark ?? ''),
     createdAt,
     uniId: isNullStr(uniId) ? generateUniqueId({ id }, index) : uniId,
     project: {
-      name: project,
-      id1: projectId,
+      name: String(project ?? ''),
+      id1: String(projectId ?? ''),
       id2: '',
     },
   };

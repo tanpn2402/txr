@@ -169,23 +169,14 @@ export const mockGsFunctions = {
                 [
                   'tan.pham',
                   'Tan Pham',
-                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
+                  '',
+                  '',
+                  '',
+                  'https://thenewstack.io/wp-content/uploads/2023/09/3e0928a7-cropped-834f4143-joemccunney-600x600.png',
                 ],
-                [
-                  'longp.tran',
-                  'Long Tran',
-                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImxvbmdwLnRyYW4iLCJyb2xlIjoiREVWIiwibmFtZSI6IkxvbmcgVHJhbiIsImlhdCI6MTc2MjE2MTk1NiwiZXhwIjoxNzkzNjk3OTU2fQ.E1hoPGB8kSjrHosiPEMMYWeY2IGO4pq-iU2Aj6KXreU',
-                ],
-                [
-                  'phiemt.hoang',
-                  'Phiem Tu',
-                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InBoaWVtdC5ob2FuZyIsInJvbGUiOiJERVYiLCJuYW1lIjoiUGhpZW0gVHUiLCJpYXQiOjE3NjIxNjIxMDAsImV4cCI6MTc5MzY5ODEwMH0.mRq8WImrqTHiL8AR6MuJMdicQFBklnPfZqcH_KCao8w',
-                ],
-                [
-                  'thienh.vu',
-                  'Thien Vu',
-                  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRoaWVuaC52dSIsInJvbGUiOiJERVYiLCJuYW1lIjoiVGhpZW4gVnUiLCJpYXQiOjE3NjIxNjIwNDMsImV4cCI6MTc5MzY5ODA0M30.mgl_2SJNpIuErCl8DqiXsBbH7nGuZJucsXuJNFH-OTY',
-                ],
+                ['longp.tran', 'Long Tran', '', '', '', ''],
+                ['phiemt.hoang', 'Phiem Tu', '', '', '', ''],
+                ['thienh.vu', 'Thien Vu', '', '', '', ''],
               ],
             });
           case 'PROJECTS':
@@ -213,5 +204,51 @@ export const mockGsFunctions = {
         }
       }, 100);
     });
+  },
+  callAction: async ({ action, body }: { action: string; body: TypeAny }) => {
+    switch (action) {
+      case 'LOGIN': {
+        return new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                success: body?.pin !== 'KpHnOx/p6PTYeqZSXK/X7w==',
+                error: body?.pin === 'KpHnOx/p6PTYeqZSXK/X7w==' ? 'Failed' : undefined,
+                data: {
+                  role: body?.id === 'tan.pham' ? 'ADMIN' : 'DEV',
+                  name: 'Tan Pham',
+                  token:
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
+                },
+              }),
+            4000
+          );
+        });
+      }
+      case 'GET_MEMBER': {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ success: true, data: { token: 'xxx' } });
+          }, 2_000);
+        });
+      }
+      case 'CREATE_TASKS': {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ success: false, error: 'Invalid token' });
+          }, 4_000);
+        });
+      }
+      case 'DELETE_TASKS': {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ success: false, error: 'Invalid token' });
+          }, 1_000);
+        });
+      }
+      default: {
+        return { success: false };
+      }
+    }
   },
 };

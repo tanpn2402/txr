@@ -11,8 +11,8 @@ type GetUsersQueryOptions = UseQueryOptions<
 >;
 
 const convertToUsers = (values: string[]) => {
-  const [id, name, token] = values;
-  return { id, name, token };
+  const [id, name, , , role, avatar] = values;
+  return { id, name, role, avatar };
 };
 
 export const getUsers = async (): Promise<IUser[] | undefined> => {
