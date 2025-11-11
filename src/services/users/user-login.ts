@@ -12,13 +12,13 @@ type LoginMutationOptions = UseMutationOptions<
 >;
 
 export const userLogin = async (data: ILoginForm) => {
-  const response = await callGoogleScript<{ action: string; body: ILoginForm }, { token: string }>(
-    'callAction',
-    {
-      action: 'LOGIN',
-      body: data,
-    }
-  );
+  const response = await callGoogleScript<
+    { action: string; body: ILoginForm },
+    { token: string; name: string; role: string }
+  >('callAction', {
+    action: 'LOGIN',
+    body: data,
+  });
   if (!response.success) {
     throw Error(typeof response.error === 'string' ? response.error : response.error?.message);
   }

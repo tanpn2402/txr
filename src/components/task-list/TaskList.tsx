@@ -1,14 +1,17 @@
-import { Button } from '@mantine/core';
+import { Button, NativeSelect } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import dayjs from 'dayjs';
 import type React from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import type { ITask } from '@/services/tasks/schema';
+import { useQueryUsers } from '@/services/users/query-users';
+import type { IUser } from '@/services/users/schema';
 import { cn } from '@/utils/cn';
 import { getStartOfWeek } from '@/utils/date-utils';
 
+import { useAuthGuard } from '../guards/AuthGuard';
 import { OpsScriptModal } from '../ops/OpsScriptModal';
 import { TaskListByWeek } from './TaskListByWeek';
 import { TaskListProvider } from './TaskListProvider';
@@ -18,14 +21,31 @@ type FormValues = {
 };
 
 export const TaskList: React.FC<{
-  id: string;
   onCopy: (task: ITask) => void;
-}> = ({ id, onCopy }) => {
+}> = ({ onCopy }) => {
+  const { userId: loggedUserId, role } = useAuthGuard();
+  const [userId, setUserId] = useState(loggedUserId);
+
   const [opened, { open, close }] = useDisclosure(false);
+
   const [weeks, setWeeks] = useState([
     getStartOfWeek(),
     getStartOfWeek(dayjs().subtract(7, 'days').toDate()),
   ]);
+
+  const { data, isLoading } = useQueryUsers();
+  const { usersOptions } = useMemo(() => {
+    const usersSet = new Set<string>();
+    const usersMap = (data ?? []).reduce<Record<string, IUser>>((acc, user) => {
+      acc[user.id] = user;
+      usersSet.add(user.id);
+      return acc;
+    }, {});
+    return {
+      usersMap,
+      usersOptions: ['---', ...usersSet],
+    };
+  }, [data]);
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -58,6 +78,8 @@ export const TaskList: React.FC<{
     ]);
   };
 
+  if (!userId) return null;
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -72,6 +94,17 @@ export const TaskList: React.FC<{
           >
             Generate OPS script
           </Button>
+          <div className="flex-1" />
+          {role === 'ADMIN' ? (
+            <NativeSelect
+              size="xs"
+              className="min-w-52"
+              value={userId ?? ''}
+              onChange={(ev) => setUserId(ev.target.value)}
+              data={usersOptions}
+              disabled={isLoading}
+            />
+          ) : null}
         </div>
         <TaskListProvider loadMore={handleLoadMoreTasks}>
           <div className={cn(['min-h-20 w-full text-sm text-gray-700'])}>
@@ -79,7 +112,7 @@ export const TaskList: React.FC<{
               <TaskListByWeek
                 key={`task-week-${week}`}
                 startWeekDate={week}
-                id={id}
+                id={userId}
                 onCopy={onCopy}
                 onToggleTask={toggleTask}
                 isLastPage={index === weeks.length - 1}

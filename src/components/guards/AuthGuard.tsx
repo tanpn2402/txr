@@ -4,15 +4,15 @@ import React, { createContext, useContext } from 'react';
 import { useValidateTokenStorage } from '@/services/users/query-user-info';
 import { tokenStorage } from '@/utils/storage-utils';
 
-import { LoginFormModal } from '../login-form/LoginFormModal';
-
 interface AuthGuardContextType {
   userId?: string | null;
   token?: string | null;
+  role?: string | null;
+  name?: string | null;
   setAuthGuard: (
     data: Partial<Omit<AuthGuardContextType, 'setAuthGuard' | 'clearAuthGuard'>>
   ) => void;
-  clearAuthGuard: () => void;
+  clearAuthGuard: (options?: { token?: boolean; userId?: boolean }) => void;
 }
 
 const AuthGuardContext = createContext<AuthGuardContextType | undefined>(undefined);
@@ -24,18 +24,21 @@ export const AuthGuardProvider: React.FC<
 > = ({ children }) => {
   const { data, isLoading, refetch } = useValidateTokenStorage();
 
+  console.log('[AuthGuard] Data', data);
+
   return (
     <AuthGuardContext.Provider
       value={{
-        userId: data?.userId,
-        token: data?.token,
+        ...data,
         setAuthGuard: async (val) => {
-          if (val.token) await tokenStorage.setAccessToken(val.token);
-          if (val.userId) await tokenStorage.setUserId(val.userId);
+          const { token, ...userInfo } = val;
+          if (token) await tokenStorage.setAccessToken(token);
+          if (userInfo.userId) await tokenStorage.setUserInfo(userInfo);
           refetch();
         },
-        clearAuthGuard: async () => {
-          await tokenStorage.clearTokens();
+        clearAuthGuard: async (options = { token: true }) => {
+          if (options.token) await tokenStorage.clearTokens();
+          if (options.userId) await tokenStorage.clearUserInfo();
           refetch();
         },
       }}
@@ -53,14 +56,12 @@ export const AuthGuardProvider: React.FC<
           closeButtonProps={{
             hidden: true,
           }}
+          className="[&_.mantine-Modal-body]:size-16! [&_.mantine-Modal-body]:pt-4! [&_.mantine-Modal-header]:hidden!"
         >
-          <Loader color="blue" />
+          <Loader color="blue" size={32} />
         </Modal>
       ) : (
-        <>
-          {children}
-          <LoginFormModal opened={!!data?.success} />
-        </>
+        children
       )}
     </AuthGuardContext.Provider>
   );

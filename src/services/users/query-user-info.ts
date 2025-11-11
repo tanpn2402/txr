@@ -2,6 +2,18 @@ import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 import { callGoogleScript } from '@/utils/gs';
 import { tokenStorage } from '@/utils/storage-utils';
+import { isNullStr } from '@/utils/string-utils';
+
+const convertToUserInfo = (values: string[]) => {
+  const [id, name, jwt, pin, role] = values;
+  return {
+    id,
+    name,
+    jwt,
+    pin,
+    role,
+  };
+};
 
 type GetUserInfoQueryOptions = UseQueryOptions<
   Awaited<ReturnType<typeof getUserInfo>>,
@@ -28,7 +40,7 @@ export const getUserInfoQueryOptions = (
   ...args: Parameters<typeof getUserInfo>
 ): GetUserInfoQueryOptions => {
   return {
-    queryKey: [],
+    queryKey: ['GET_MEMBER', ...args],
     queryFn: () => getUserInfo(...args),
   };
 };
@@ -44,13 +56,13 @@ type GetMyUserInfoQueryOptions = UseQueryOptions<
 >;
 
 export const getMyUserInfo = async () => {
-  const myUserId = await tokenStorage.getUserId();
+  const myUserId = (await tokenStorage.getUserInfo())?.userId;
   if (!myUserId) {
     throw Error('Login required');
   }
   const response = await callGoogleScript<
     { action: string; token: string | null; body: { id: string } },
-    { token: string }
+    string[]
   >('callAction', {
     action: 'GET_MEMBER',
     body: {
@@ -59,14 +71,18 @@ export const getMyUserInfo = async () => {
     token: await tokenStorage.getAccessToken(),
   });
 
-  return response;
+  if (!response.success) {
+    throw [];
+  } else {
+    return response.data ? convertToUserInfo(response.data) : undefined;
+  }
 };
 
 export const getMyUserInfoQueryOptions = (
   ...args: Parameters<typeof getMyUserInfo>
 ): GetMyUserInfoQueryOptions => {
   return {
-    queryKey: [],
+    queryKey: ['GET_MEMBER', ...args],
     queryFn: () => getMyUserInfo(...args),
   };
 };
@@ -79,9 +95,9 @@ export const useValidateTokenStorage = () => {
   return useQuery({
     queryKey: ['VALIDATE_TOKEN_STORAGE'],
     queryFn: async () => {
-      const userId = await tokenStorage.getUserId();
+      const userInfo = await tokenStorage.getUserInfo();
       const token = await tokenStorage.getAccessToken();
-      return { success: !userId || !token, userId, token };
+      return { success: !isNullStr(userInfo?.userId) && !isNullStr(token), ...userInfo, token };
     },
   });
 };

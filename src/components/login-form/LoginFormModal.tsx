@@ -10,8 +10,8 @@ export const LoginFormModal: React.FC<{
     <Modal
       opened={opened}
       onClose={() => {}}
-      title="Please login"
       centered
+      title={false}
       size="auto"
       overlayProps={{
         backgroundOpacity: 0.55,
@@ -20,6 +20,7 @@ export const LoginFormModal: React.FC<{
       closeButtonProps={{
         hidden: true,
       }}
+      className="[&_.mantine-Modal-body]:pt-4! [&_.mantine-Modal-header]:hidden!"
     >
       <LoginForm />
     </Modal>

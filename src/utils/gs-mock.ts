@@ -214,12 +214,14 @@ export const mockGsFunctions = {
       }, 100);
     });
   },
-  callAction: async ({ action }: { action: string; body: TypeAny }) => {
+  callAction: async ({ action, body }: { action: string; body: TypeAny }) => {
     switch (action) {
       case 'LOGIN': {
         return {
-          success: true,
+          success: body?.pin !== '1234',
           data: {
+            role: body?.id === 'tan.pham' ? 'ADMIN' : 'DEV',
+            name: 'Tan Pham',
             token:
               'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
           },

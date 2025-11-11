@@ -58,7 +58,7 @@ function useTaskList({ id, startWeekDate }: { startWeekDate: string; id: string 
               : {}),
           },
         }))
-        .sort((a, b) => (dayjs(a.date).isAfter(dayjs(b.date)) ? 1 : -1)),
+        .sort((a, b) => (dayjs(a.date).isBefore(dayjs(b.date)) ? 1 : -1)),
     [id, startWeekDate, projectsMap, data]
   );
 

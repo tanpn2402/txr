@@ -1,20 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Code, Loader } from '@mantine/core';
+import { Button, Code, Skeleton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo } from 'react';
-import {
-  type FieldErrors,
-  FormProvider,
-  useFieldArray,
-  useForm,
-} from 'react-hook-form';
+import { type FieldErrors, FormProvider, useFieldArray, useForm } from 'react-hook-form';
 
 import { useDebounceFn } from '@/hooks/useDebounceFn';
 import { useQueryProjects } from '@/services/projects/query-projects';
 import { createDefaultTask, useCreateTasks } from '@/services/tasks/create-tasks';
 import { getTasksQueryOptions } from '@/services/tasks/query-tasks';
-import { type ITask, type ITaskForm,TaskFormSchema } from '@/services/tasks/schema';
+import { type ITask, type ITaskForm, TaskFormSchema } from '@/services/tasks/schema';
 import { useQueryUsers } from '@/services/users/query-users';
 import { getStartOfWeek } from '@/utils/date-utils';
 import { taskStorage } from '@/utils/storage-utils';
@@ -25,7 +20,7 @@ import { TaskList } from '../task-list/TaskList';
 import { FormRow } from './FormRow';
 
 const TaskForm = () => {
-  const { userId, clearAuthGuard } = useAuthGuard();
+  const { userId, name, clearAuthGuard } = useAuthGuard();
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQueryUsers();
@@ -145,90 +140,94 @@ const TaskForm = () => {
   }, [initialLoad]);
 
   return (
-    <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-0">
-        <div className="mb-4 flex items-center gap-2">
-          {isLoading || !user ? (
-            <Loader color="gray" size={34} />
-          ) : (
-            <>
-              <h2 className="text-2xl">
-                Hi <Code className="text-2xl!">{user?.name ?? '<no-name/>'}</Code>{' '}
-              </h2>
-              <Button
-                variant="outline"
-                color="gray"
-                type="button"
-                size="compact-xs"
-                onClick={clearAuthGuard}
-              >
-                Logout
-              </Button>
-            </>
-          )}
-        </div>
-        <div className="grid grid-cols-[160px_160px_220px_160px_1fr] items-start gap-0 text-sm text-slate-400 italic [&_p]:px-2">
-          <p>Project</p>
-          <p>Date</p>
-          <p>Status</p>
-          <p>Jira</p>
-          <p>Description</p>
-        </div>
-        {fields.map((field, index) => (
-          <FormRow
-            key={`Row#${String.fromCharCode(index + 65)}`}
-            field={{ ...field, index }}
-            onRemove={() => {
-              remove(index);
-              if (fields.length === 1) {
+    <>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-0">
+          <div className="mb-4 flex h-10 items-center gap-2">
+            {userId ? (
+              isLoading ? (
+                <Skeleton height={30} width={250} />
+              ) : (
+                <div className="flex flex-nowrap items-center gap-2">
+                  <h2 className="text-2xl">Hi </h2>
+                  <Code className="text-2xl!">{user?.name ?? name ?? '<no-name/>'}</Code>
+                  <Button
+                    variant="outline"
+                    color="gray"
+                    type="button"
+                    size="compact-xs"
+                    className="mx-8"
+                    onClick={() => clearAuthGuard()}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              )
+            ) : null}
+          </div>
+          <div className="grid grid-cols-[160px_160px_220px_160px_1fr] items-start gap-0 text-sm text-slate-400 italic [&_p]:px-2">
+            <p>Project</p>
+            <p>Date</p>
+            <p>Status</p>
+            <p>Jira</p>
+            <p>Description</p>
+          </div>
+          {fields.map((field, index) => (
+            <FormRow
+              key={`Row#${String.fromCharCode(index + 65)}`}
+              field={{ ...field, index }}
+              onRemove={() => {
+                remove(index);
+                if (fields.length === 1) {
+                  clearForm([createDefaultTask(undefined, defaultProject)]);
+                }
+              }}
+              onCopy={() => {
+                append(getValues(`tasks.${index}`));
+              }}
+            />
+          ))}
+
+          <div className="mt-4 flex items-center justify-end gap-4">
+            <Button
+              variant="outline"
+              color="gray"
+              type="button"
+              size="lg"
+              disabled={mutation.isPending}
+              onClick={() => {
                 clearForm([createDefaultTask(undefined, defaultProject)]);
-              }
-            }}
-            onCopy={() => {
-              append(getValues(`tasks.${index}`));
-            }}
-          />
-        ))}
+              }}
+            >
+              Clear all
+            </Button>
 
-        {user?.id ? <TaskList id={user.id} onCopy={(task) => append(task)} /> : null}
+            <Button
+              variant="outline"
+              color="gray"
+              type="button"
+              size="lg"
+              disabled={mutation.isPending}
+              onClick={() => append(createDefaultTask(undefined, defaultProject))}
+            >
+              + Add New
+            </Button>
 
-        <div className="mt-4 flex items-center justify-end gap-4">
-          <Button
-            variant="outline"
-            color="gray"
-            type="button"
-            size="lg"
-            disabled={mutation.isPending}
-            onClick={() => {
-              clearForm([createDefaultTask(undefined, defaultProject)]);
-            }}
-          >
-            Clear all
-          </Button>
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="min-w-24"
+              size="lg"
+              w={200}
+            >
+              {mutation.isPending ? 'Submitting...' : 'Submit'}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
 
-          <Button
-            variant="outline"
-            color="gray"
-            type="button"
-            size="lg"
-            disabled={mutation.isPending}
-            onClick={() => append(createDefaultTask(undefined, defaultProject))}
-          >
-            + Add New
-          </Button>
-
-          <Button
-            type="submit"
-            disabled={mutation.isPending}
-            className="min-w-24"
-            size="lg"
-            w={200}
-          >
-            {mutation.isPending ? 'Submitting...' : 'Submit'}
-          </Button>
-        </div>
-      </form>
-    </FormProvider>
+      <TaskList key={`TaskOfUser${userId}`} onCopy={(task) => append(task)} />
+    </>
   );
 };
 

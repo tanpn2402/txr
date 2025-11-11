@@ -11,17 +11,32 @@ const tokenStorage = {
   setAccessToken: (token: string) => {
     return localforage.setItem(`${storagePrefix}atoken`, token);
   },
-  setUserId: (userId: string) => {
-    return localforage.setItem(`${storagePrefix}auserid`, userId);
+  setUserInfo: (data: { userId?: string | null; role?: string | null; name?: string | null }) => {
+    return localforage.setItem(`${storagePrefix}auser`, data);
   },
-  getUserId: () => {
-    return localforage.getItem<string>(`${storagePrefix}auserid`);
+  getUserInfo: async () => {
+    const storedData = await localforage.getItem<{
+      userId?: string | null;
+      role?: string | null;
+      name?: string | null;
+    }>(`${storagePrefix}auser`);
+    if (typeof storedData === 'string') {
+      return JSON.parse(storedData) as {
+        userId?: string | null;
+        role?: string | null;
+        name?: string | null;
+      };
+    }
+    return storedData;
   },
   clearTokens: async () => {
     await Promise.allSettled([
       localforage.removeItem(`${storagePrefix}atoken`),
       localforage.removeItem(`${storagePrefix}ftoken`),
     ]);
+  },
+  clearUserInfo: async () => {
+    await Promise.allSettled([localforage.removeItem(`${storagePrefix}auser`)]);
   },
 };
 
