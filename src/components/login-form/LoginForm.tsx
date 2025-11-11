@@ -4,13 +4,16 @@ import { notifications } from '@mantine/notifications';
 import { Controller, type FieldErrors, FormProvider, useForm } from 'react-hook-form';
 
 import { useDebounceFn } from '@/hooks/useDebounceFn';
+import { useQueryMyUserInfo } from '@/services/users/query-user-info';
 import { type ILoginForm, LoginFormSchema } from '@/services/users/schema';
 import { useLogin } from '@/services/users/user-login';
+import { cn } from '@/utils/cn';
 
 import { useAuthGuard } from '../guards/AuthGuard';
 
 const LoginForm = () => {
   const { userId, setAuthGuard, clearAuthGuard } = useAuthGuard();
+  const { data: myUserInfo } = useQueryMyUserInfo();
 
   const methods = useForm({
     resolver: zodResolver(LoginFormSchema),
@@ -73,7 +76,14 @@ const LoginForm = () => {
         <div className="flex flex-col gap-y-4">
           {userId ? (
             <div className="mb-4 flex flex-col items-center justify-center gap-2">
-              <Avatar radius="xl" className="size-24! rounded-full!" />
+              <Avatar
+                radius="xl"
+                className={cn([
+                  'size-24! rounded-full!',
+                  myUserInfo?.avatar && 'border-4 border-gray-300',
+                ])}
+                src={myUserInfo?.avatar}
+              />
               <h2 className="text-2xl">
                 Hi <Code className="text-2xl!">{userId}</Code>
               </h2>

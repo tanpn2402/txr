@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Code, Skeleton } from '@mantine/core';
+import { Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -20,10 +20,10 @@ import { TaskList } from '../task-list/TaskList';
 import { FormRow } from './FormRow';
 
 const TaskForm = () => {
-  const { userId, name, clearAuthGuard } = useAuthGuard();
+  const { userId } = useAuthGuard();
   const queryClient = useQueryClient();
 
-  const { data: users, isLoading } = useQueryUsers();
+  const { data: users } = useQueryUsers();
   const { data: projects } = useQueryProjects();
 
   const defaultProject = useMemo(
@@ -43,7 +43,6 @@ const TaskForm = () => {
   const { fields, append, remove } = useFieldArray({ control, name: 'tasks' });
 
   const tasks = watch('tasks');
-  const user = watch('user');
 
   const mutation = useCreateTasks({
     onSuccess: () => {
@@ -143,28 +142,6 @@ const TaskForm = () => {
     <>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-0">
-          <div className="mb-4 flex h-10 items-center gap-2">
-            {userId ? (
-              isLoading ? (
-                <Skeleton height={30} width={250} />
-              ) : (
-                <div className="flex flex-nowrap items-center gap-2">
-                  <h2 className="text-2xl">Hi </h2>
-                  <Code className="text-2xl!">{user?.name ?? name ?? '<no-name/>'}</Code>
-                  <Button
-                    variant="outline"
-                    color="gray"
-                    type="button"
-                    size="compact-xs"
-                    className="mx-8"
-                    onClick={() => clearAuthGuard()}
-                  >
-                    Logout
-                  </Button>
-                </div>
-              )
-            ) : null}
-          </div>
           <div className="grid grid-cols-[160px_160px_220px_160px_1fr] items-start gap-0 text-sm text-slate-400 italic [&_p]:px-2">
             <p>Project</p>
             <p>Date</p>

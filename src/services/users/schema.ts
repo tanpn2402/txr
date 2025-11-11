@@ -8,7 +8,8 @@ export const LoginFormSchema = z.object({
 export const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
-  token: z.string(),
+  role: z.string().optional(),
+  avatar: z.string().optional(),
 });
 
 export type ILoginForm = z.infer<typeof LoginFormSchema>;

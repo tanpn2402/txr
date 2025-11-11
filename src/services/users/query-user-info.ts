@@ -1,19 +1,12 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
+import { useAuthGuard } from '@/components/guards/AuthGuard';
 import { callGoogleScript } from '@/utils/gs';
 import { tokenStorage } from '@/utils/storage-utils';
 import { isNullStr } from '@/utils/string-utils';
 
-const convertToUserInfo = (values: string[]) => {
-  const [id, name, jwt, pin, role] = values;
-  return {
-    id,
-    name,
-    jwt,
-    pin,
-    role,
-  };
-};
+import { useQueryUsers } from './query-users';
 
 type GetUserInfoQueryOptions = UseQueryOptions<
   Awaited<ReturnType<typeof getUserInfo>>,
@@ -49,46 +42,15 @@ export const useQueryUserInfo = (...args: Parameters<typeof getUserInfoQueryOpti
   return useQuery(getUserInfoQueryOptions(...args));
 };
 
-type GetMyUserInfoQueryOptions = UseQueryOptions<
-  Awaited<ReturnType<typeof getMyUserInfo>>,
-  Error,
-  Parameters<typeof getMyUserInfo>
->;
+export const useQueryMyUserInfo = () => {
+  const { data, isLoading } = useQueryUsers();
+  const { userId } = useAuthGuard();
 
-export const getMyUserInfo = async () => {
-  const myUserId = (await tokenStorage.getUserInfo())?.userId;
-  if (!myUserId) {
-    throw Error('Login required');
-  }
-  const response = await callGoogleScript<
-    { action: string; token: string | null; body: { id: string } },
-    string[]
-  >('callAction', {
-    action: 'GET_MEMBER',
-    body: {
-      id: myUserId,
-    },
-    token: await tokenStorage.getAccessToken(),
-  });
-
-  if (!response.success) {
-    throw [];
-  } else {
-    return response.data ? convertToUserInfo(response.data) : undefined;
-  }
-};
-
-export const getMyUserInfoQueryOptions = (
-  ...args: Parameters<typeof getMyUserInfo>
-): GetMyUserInfoQueryOptions => {
+  const userInfo = useMemo(() => data?.find(({ id }) => id === userId), [data, userId]);
   return {
-    queryKey: ['GET_MEMBER', ...args],
-    queryFn: () => getMyUserInfo(...args),
+    isLoading,
+    data: userInfo,
   };
-};
-
-export const useQueryMyUserInfo = (...args: Parameters<typeof getMyUserInfoQueryOptions>) => {
-  return useQuery(getMyUserInfoQueryOptions(...args));
 };
 
 export const useValidateTokenStorage = () => {
