@@ -1,8 +1,17 @@
 import { Loader, Modal } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import React, { createContext, useContext } from 'react';
 
 import { useValidateTokenStorage } from '@/services/users/query-user-info';
+import type { MutationOptions } from '@/types/MutationOptions';
 import { tokenStorage } from '@/utils/storage-utils';
+
+const TOKEN_ISSUES = [
+  'Token expired',
+  'Invalid or expired token',
+  'Missing token',
+  'Invalid token',
+];
 
 interface AuthGuardContextType {
   userId?: string | null;
@@ -75,4 +84,28 @@ function useAuthGuard() {
   return context;
 }
 
-export { useAuthGuard };
+const authGuardMutationMiddleware = (authGuard: AuthGuardContextType) => {
+  return function <T, V>(mutationOptions: MutationOptions<T, V>): MutationOptions<T, V> {
+    const { onError, ...options } = mutationOptions;
+
+    return {
+      ...options,
+      onError: (error, variables, onMutateResult, context) => {
+        if (
+          (error instanceof Error && TOKEN_ISSUES.includes(error.message)) ||
+          (typeof error === 'string' && TOKEN_ISSUES.includes(error))
+        ) {
+          authGuard.clearAuthGuard({ token: true });
+          notifications.show({
+            color: 'red',
+            message: 'Your session is expired. Please enter your PIN and submit again.',
+          });
+        } else if (onError) {
+          onError(error, variables, onMutateResult, context);
+        }
+      },
+    };
+  };
+};
+
+export { authGuardMutationMiddleware,useAuthGuard };

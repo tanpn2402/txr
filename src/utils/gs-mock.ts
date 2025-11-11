@@ -217,21 +217,42 @@ export const mockGsFunctions = {
   callAction: async ({ action, body }: { action: string; body: TypeAny }) => {
     switch (action) {
       case 'LOGIN': {
-        return {
-          success: body?.pin !== '1234',
-          data: {
-            role: body?.id === 'tan.pham' ? 'ADMIN' : 'DEV',
-            name: 'Tan Pham',
-            token:
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
-          },
-        };
+        return new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                success: body?.pin !== 'KpHnOx/p6PTYeqZSXK/X7w==',
+                error: body?.pin === 'KpHnOx/p6PTYeqZSXK/X7w==' ? 'Failed' : undefined,
+                data: {
+                  role: body?.id === 'tan.pham' ? 'ADMIN' : 'DEV',
+                  name: 'Tan Pham',
+                  token:
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRhbi5waGFtIiwicm9sZSI6IkFETUlOIiwibmFtZSI6IlRhbiBQaGFtIiwiaWF0IjoxNzYyMTYxNjI2LCJleHAiOjE3OTM2OTc2MjZ9.D4NKkY2SzHnizLbgRkAZIfrU_E6etRw303-qbr9WC58',
+                },
+              }),
+            4000
+          );
+        });
       }
       case 'GET_MEMBER': {
         return new Promise((resolve) => {
           setTimeout(() => {
             resolve({ success: true, data: { token: 'xxx' } });
-          }, 10_000);
+          }, 2_000);
+        });
+      }
+      case 'CREATE_TASKS': {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ success: false, error: 'Invalid token' });
+          }, 4_000);
+        });
+      }
+      case 'DELETE_TASKS': {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ success: false, error: 'Invalid token' });
+          }, 1_000);
         });
       }
       default: {

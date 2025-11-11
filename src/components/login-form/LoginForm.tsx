@@ -34,13 +34,14 @@ const LoginForm = () => {
         color: 'red',
         message: 'Failed to submit, please try again after 5 seconds.',
       });
+      methods.setValue('pin', '');
       methods.setError('pin', { message: 'Invalid PIN' });
     },
     retry: 0,
   });
 
-  const onSubmit = (data: ILoginForm) => {
-    mutation.mutate(data);
+  const onSubmit = async (data: ILoginForm) => {
+    await mutation.mutateAsync(data);
   };
 
   const onError = (errors: FieldErrors<ILoginForm>) => {
@@ -52,11 +53,18 @@ const LoginForm = () => {
   useDebounceFn(
     formState,
     (formState) => {
-      if (formState.isDirty && formState.isValid && !formState.errors.id && !formState.errors.pin) {
+      if (
+        formState.isDirty &&
+        formState.isValid &&
+        !formState.isSubmitting &&
+        !formState.isValidating &&
+        !formState.errors.id &&
+        !formState.errors.pin
+      ) {
         handleSubmit(onSubmit)();
       }
     },
-    500
+    300
   );
 
   return (
@@ -95,6 +103,7 @@ const LoginForm = () => {
                       error={formState.errors.id?.message}
                       tabIndex={userId ? 0 : 1}
                       autoFocus={!userId}
+                      disabled={mutation.isPending}
                     />
                   );
                 }}

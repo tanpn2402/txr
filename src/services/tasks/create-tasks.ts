@@ -1,17 +1,17 @@
-import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
+import { authGuardMutationMiddleware, useAuthGuard } from '@/components/guards/AuthGuard';
+import type { MutationOptions } from '@/types/MutationOptions';
 import { getStartOfWeek } from '@/utils/date-utils';
 import { callGoogleScript } from '@/utils/gs';
 import { tokenStorage } from '@/utils/storage-utils';
 
 import type { ITask, ITaskForm } from './schema';
 
-type CreateTaskMutationOptions = UseMutationOptions<
+type CreateTaskMutationOptions = MutationOptions<
   Awaited<ReturnType<typeof createTasks>>,
-  Error,
-  Parameters<typeof createTasks>[0],
-  unknown
+  Parameters<typeof createTasks>[0]
 >;
 
 export const createTasks = async (form: ITaskForm) => {
@@ -42,7 +42,8 @@ export const getCreateTaskMutationOptions = (
 };
 
 export const useCreateTasks = (...args: Parameters<typeof getCreateTaskMutationOptions>) => {
-  return useMutation(getCreateTaskMutationOptions(...args));
+  const authGuard = useAuthGuard();
+  return useMutation(authGuardMutationMiddleware(authGuard)(getCreateTaskMutationOptions(...args)));
 };
 
 export const createDefaultTask = (date?: string, defaultProject?: ITask['project']): ITask => {
